@@ -16,7 +16,6 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final _odoController = TextEditingController();
   
   String _selectedType = 'Car';
-  bool _useReserveOffset = false;
 
   String? _nameError;
   String? _odoError;
@@ -26,6 +25,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     {'name': 'Bike', 'icon': LucideIcons.bike},
     {'name': 'Scooter', 'icon': LucideIcons.toy_brick}, // Custom representation
     {'name': 'Truck', 'icon': LucideIcons.truck},
+    {'name': 'Bus', 'icon': LucideIcons.bus},
+    {'name': 'Van', 'icon': LucideIcons.truck},
   ];
 
   @override
@@ -73,7 +74,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       name: name,
       type: _selectedType,
       initialOdometer: odo!,
-      useReserveOffset: _useReserveOffset,
+      useReserveOffset: true,
     );
 
     Navigator.pop(context);
@@ -107,7 +108,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               NeonTextField(
                 controller: _nameController,
                 label: "Vehicle Name",
-                hint: "e.g., Tesla Model 3, Pulsar 150",
+                hint: "e.g., Creta, Bullet",
                 prefixIcon: LucideIcons.info,
                 errorText: _nameError,
               ),
@@ -135,10 +136,6 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                       onTap: () {
                         setState(() {
                           _selectedType = type['name'] as String;
-                          // If not a bike/scooter, disable reserve by default
-                          if (_selectedType != 'Bike' && _selectedType != 'Scooter') {
-                            _useReserveOffset = false;
-                          }
                         });
                       },
                       child: Container(
@@ -199,59 +196,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Reserve Offset Switch Card
-              NeonCard(
-                borderRadius: 16.0,
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(LucideIcons.fuel, color: NeonColors.secondary, size: 18),
-                              const SizedBox(width: 8),
-                              const Text(
-                                "Reserve Tank Offset Mode",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            "Accounts for riding distance between reaching reserve fuel and refueling. Highly recommended for bikes/scooters.",
-                            style: TextStyle(
-                              color: NeonColors.textSecondary,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Switch(
-                      value: _useReserveOffset,
-                      activeColor: NeonColors.secondary,
-                      activeTrackColor: NeonColors.primary.withOpacity(0.5),
-                      inactiveThumbColor: NeonColors.textSecondary,
-                      inactiveTrackColor: Colors.black12,
-                      onChanged: (_selectedType == 'Bike' || _selectedType == 'Scooter')
-                          ? (value) {
-                              setState(() {
-                                _useReserveOffset = value;
-                              });
-                            }
-                          : null, // Disabled for cars/trucks unless they want it (standard bikes/scooters usually)
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
 
               // Save Button
               NeonButton(

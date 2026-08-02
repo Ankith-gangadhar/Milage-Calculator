@@ -529,6 +529,20 @@ class VehicleDetailScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+              ] else if (vehicle.useReserveOffset && entry.reserveOdometer == null) ...[
+                const Divider(color: NeonColors.border, height: 16, thickness: 0.5),
+                Row(
+                  children: [
+                    const Icon(LucideIcons.circle_question_mark, color: Colors.orangeAccent, size: 12),
+                    const SizedBox(width: 6),
+                    const Expanded(
+                      child: Text(
+                        "Mileage cannot be calculated yet (refueled before reserve). Keep riding until reserve light turns on.",
+                        style: TextStyle(color: Colors.orangeAccent, fontSize: 10),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ],
           ),

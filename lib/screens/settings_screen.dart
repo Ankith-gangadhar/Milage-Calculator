@@ -53,6 +53,57 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  void _showEditOwnerNameDialog(BuildContext context, VehicleProvider provider) {
+    final controller = TextEditingController(text: provider.ownerName == "My" ? "" : provider.ownerName);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: NeonColors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: NeonColors.border),
+          ),
+          title: const Text("Edit Garage Owner", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Enter your name to personalize your garage header (e.g. 'Ankith's Garage').",
+                style: TextStyle(color: NeonColors.textSecondary, fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              NeonTextField(
+                controller: controller,
+                label: "Owner Name",
+                hint: "e.g., Ankith",
+                prefixIcon: LucideIcons.pencil,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel", style: TextStyle(color: NeonColors.textSecondary)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                provider.updateOwnerName(controller.text.trim());
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: NeonColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<VehicleProvider>(context);
@@ -94,6 +145,40 @@ class SettingsScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 28),
+
+            // Owner Name Card
+            NeonCard(
+              onTap: () => _showEditOwnerNameDialog(context, provider),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              borderRadius: 16.0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(LucideIcons.pencil, color: NeonColors.secondary, size: 20),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Garage Owner Name",
+                            style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "Owner: ${provider.ownerName}",
+                            style: const TextStyle(color: NeonColors.textSecondary, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const Icon(LucideIcons.chevron_right, color: NeonColors.textSecondary, size: 16),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
 
             // Theme Settings Card
             NeonCard(

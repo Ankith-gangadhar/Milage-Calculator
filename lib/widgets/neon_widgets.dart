@@ -433,6 +433,10 @@ IconData getVehicleIcon(String type) {
       return LucideIcons.bike;
     case 'scooter':
       return LucideIcons.toy_brick; // Scooter-like representation
+    case 'bus':
+      return LucideIcons.bus;
+    case 'van':
+      return LucideIcons.truck; // Using truck icon for van
     case 'truck':
       return LucideIcons.truck;
     default:

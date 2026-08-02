@@ -178,9 +178,9 @@ class _VehiclesTabState extends State<VehiclesTab> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "My Garage",
-                  style: TextStyle(
+                Text(
+                  "${provider.ownerName.toLowerCase() == 'my' ? 'My' : "${provider.ownerName}'s"} Garage",
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 28,
                     fontWeight: FontWeight.bold,

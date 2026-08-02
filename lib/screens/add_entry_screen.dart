@@ -23,6 +23,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   final _reserveOdoController = TextEditingController();
   
   late DateTime _selectedDate;
+  bool _reserveIndicatorReached = false;
 
   String? _odoError;
   String? _litresError;
@@ -35,12 +36,12 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       _odoController.text = widget.editEntry!.odometer.toStringAsFixed(1);
       _litresController.text = widget.editEntry!.litres.toStringAsFixed(2);
       _selectedDate = widget.editEntry!.date;
-      if (widget.vehicle.useReserveOffset && widget.editEntry!.reserveOdometer != null) {
+      _reserveIndicatorReached = widget.editEntry!.reserveOdometer != null;
+      if (_reserveIndicatorReached) {
         _reserveOdoController.text = widget.editEntry!.reserveOdometer!.toStringAsFixed(1);
       }
     } else {
       _selectedDate = DateTime.now();
-      // Pre-fill litres as hint or blank, and reserve odometer as empty
     }
   }
 
@@ -103,16 +104,6 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       hasError = true;
     }
 
-    // Validate Refill Odometer
-    final double? odo = double.tryParse(odoStr);
-    if (odoStr.isEmpty) {
-      _odoError = "Refill odometer reading is required";
-      hasError = true;
-    } else if (odo == null || odo < 0) {
-      _odoError = "Enter a valid odometer reading";
-      hasError = true;
-    }
-
     // Get sibling entries for validation
     final provider = Provider.of<VehicleProvider>(context, listen: false);
     final entries = provider.getEntriesForVehicle(widget.vehicle.id!);
@@ -124,38 +115,25 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       // Find the index of the entry we are editing
       final index = entries.indexWhere((e) => e.id == widget.editEntry!.id);
       if (index != -1) {
-        // Since list is sorted newest first (descending):
-        // Previous chronological entry is at index + 1
         if (index < entries.length - 1) {
           lastRefillOdo = entries[index + 1].odometer;
         }
-        // Next chronological entry is at index - 1
         if (index > 0) {
           nextRefillOdo = entries[index - 1].odometer;
         }
       }
     } else {
-      // Adding new entry (will be the newest if date is now)
+      // Adding new entry
       if (entries.isNotEmpty) {
-        lastRefillOdo = entries.first.odometer; // Entries is sorted DESC (newest first)
+        lastRefillOdo = entries.first.odometer;
       }
     }
 
-    // Odometer validation against last entry
-    if (odo != null) {
-      if (odo <= lastRefillOdo) {
-        _odoError = "Must be greater than last odometer (${lastRefillOdo.toStringAsFixed(0)} KM)";
-        hasError = true;
-      }
-      if (nextRefillOdo != null && odo >= nextRefillOdo) {
-        _odoError = "Must be less than next odometer (${nextRefillOdo.toStringAsFixed(0)} KM)";
-        hasError = true;
-      }
-    }
-
-    // Validate Reserve Odometer (if enabled)
+    double? odo;
     double? reserveOdo;
-    if (widget.vehicle.useReserveOffset) {
+
+    if (_reserveIndicatorReached) {
+      // Validate Reserve Odometer
       reserveOdo = double.tryParse(reserveOdoStr);
       if (reserveOdoStr.isEmpty) {
         _reserveOdoError = "Reserve odometer is required";
@@ -163,13 +141,43 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       } else if (reserveOdo == null || reserveOdo < 0) {
         _reserveOdoError = "Enter a valid reserve odometer reading";
         hasError = true;
-      } else if (odo != null && reserveOdo > odo) {
-        _reserveOdoError = "Cannot exceed refill odometer (${odo.toStringAsFixed(0)} KM)";
-        hasError = true;
-      } else if (reserveOdo < lastRefillOdo) {
+      } else if (reserveOdo <= lastRefillOdo) {
         _reserveOdoError = "Cannot be lower than last refill (${lastRefillOdo.toStringAsFixed(0)} KM)";
         hasError = true;
       }
+
+      // Validate Refill Odometer
+      odo = double.tryParse(odoStr);
+      if (odoStr.isEmpty) {
+        _odoError = "Refill odometer reading is required";
+        hasError = true;
+      } else if (odo == null || odo < 0) {
+        _odoError = "Enter a valid odometer reading";
+        hasError = true;
+      } else if (reserveOdo != null && odo < reserveOdo) {
+        _odoError = "Refill odometer must be at or after reserve (${reserveOdo.toStringAsFixed(0)} KM)";
+        hasError = true;
+      }
+    } else {
+      // Validate Current Odometer
+      odo = double.tryParse(odoStr);
+      if (odoStr.isEmpty) {
+        _odoError = "Current odometer reading is required";
+        hasError = true;
+      } else if (odo == null || odo < 0) {
+        _odoError = "Enter a valid odometer reading";
+        hasError = true;
+      } else if (odo <= lastRefillOdo) {
+        _odoError = "Must be greater than last odometer (${lastRefillOdo.toStringAsFixed(0)} KM)";
+        hasError = true;
+      }
+      reserveOdo = null;
+    }
+
+    // Odometer validation against next entry
+    if (odo != null && nextRefillOdo != null && odo >= nextRefillOdo) {
+      _odoError = "Must be less than next odometer (${nextRefillOdo.toStringAsFixed(0)} KM)";
+      hasError = true;
     }
 
     if (hasError) {
@@ -256,28 +264,90 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Conditionally render Reserve Odometer field first if in Reserve Offset Mode
-              if (widget.vehicle.useReserveOffset) ...[
+              // Reserve Indicator Reached Toggle Card
+              NeonCard(
+                borderRadius: 16.0,
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(LucideIcons.fuel, color: NeonColors.secondary, size: 18),
+                              const SizedBox(width: 8),
+                              const Text(
+                                "Reserve Indicator Reached?",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            "Turn on if low fuel / reserve light appeared before you refilled.",
+                            style: TextStyle(
+                              color: NeonColors.textSecondary,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: _reserveIndicatorReached,
+                      activeColor: NeonColors.secondary,
+                      activeTrackColor: NeonColors.primary.withOpacity(0.5),
+                      inactiveThumbColor: NeonColors.textSecondary,
+                      inactiveTrackColor: Colors.black12,
+                      onChanged: (value) {
+                        setState(() {
+                          _reserveIndicatorReached = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              if (_reserveIndicatorReached) ...[
+                // Reserve Odometer Input
                 NeonTextField(
                   controller: _reserveOdoController,
-                  label: "Reserve Odometer Reading (KM)",
-                  hint: "Odometer when reserve was reached",
+                  label: "Reserve Reached At (KM)",
+                  hint: "Odometer when reserve light turned on",
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   prefixIcon: LucideIcons.fuel,
                   errorText: _reserveOdoError,
                 ),
                 const SizedBox(height: 24),
+                
+                // Fuel Refilled At Input
+                NeonTextField(
+                  controller: _odoController,
+                  label: "Fuel Refilled At (KM)",
+                  hint: "Odometer reading when actually refueled",
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  prefixIcon: LucideIcons.gauge,
+                  errorText: _odoError,
+                ),
+              ] else ...[
+                // Current Odometer Input
+                NeonTextField(
+                  controller: _odoController,
+                  label: "Current Odometer (KM)",
+                  hint: "Odometer reading at gas station",
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  prefixIcon: LucideIcons.gauge,
+                  errorText: _odoError,
+                ),
               ],
-
-              // Refill Odometer Input
-              NeonTextField(
-                controller: _odoController,
-                label: "Current Refill Odometer (KM)",
-                hint: "Odometer reading at gas station",
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                prefixIcon: LucideIcons.gauge,
-                errorText: _odoError,
-              ),
               const SizedBox(height: 24),
 
               // Litres Filled Input
