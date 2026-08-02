@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 // UI Constants
 class NeonColors {
@@ -432,10 +432,10 @@ IconData getVehicleIcon(String type) {
     case 'bike':
       return LucideIcons.bike;
     case 'scooter':
-      return LucideIcons.toyBrick; // Scooter-like representation
+      return LucideIcons.toy_brick; // Scooter-like representation
     case 'truck':
       return LucideIcons.truck;
     default:
-      return LucideIcons.helpCircle;
+      return LucideIcons.circle_question_mark;
   }
 }

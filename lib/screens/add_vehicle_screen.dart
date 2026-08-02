@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../providers/vehicle_provider.dart';
 import '../widgets/neon_widgets.dart';
 
@@ -24,7 +24,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final List<Map<String, dynamic>> _vehicleTypes = [
     {'name': 'Car', 'icon': LucideIcons.car},
     {'name': 'Bike', 'icon': LucideIcons.bike},
-    {'name': 'Scooter', 'icon': LucideIcons.toyBrick}, // Custom representation
+    {'name': 'Scooter', 'icon': LucideIcons.toy_brick}, // Custom representation
     {'name': 'Truck', 'icon': LucideIcons.truck},
   ];
 
@@ -87,7 +87,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
+          icon: const Icon(LucideIcons.arrow_left, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(

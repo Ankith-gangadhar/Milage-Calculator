@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import '../providers/vehicle_provider.dart';
 import '../models/vehicle.dart';
@@ -73,7 +73,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(0, LucideIcons.car, "Vehicles"),
-              _buildNavItem(1, LucideIcons.barChart2, "Dashboard"),
+              _buildNavItem(1, LucideIcons.chart_bar, "Dashboard"),
               _buildNavItem(2, LucideIcons.settings, "Settings"),
             ],
           ),
@@ -250,7 +250,7 @@ class _VehiclesTabState extends State<VehiclesTab> {
                     child: DropdownButton<String>(
                       value: _sortBy,
                       dropdownColor: NeonColors.surface,
-                      icon: const Icon(LucideIcons.chevronDown, color: NeonColors.secondary, size: 16),
+                      icon: const Icon(LucideIcons.chevron_down, color: NeonColors.secondary, size: 16),
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                       onChanged: (String? val) {
                         if (val != null) {
@@ -440,7 +440,7 @@ class _VehiclesTabState extends State<VehiclesTab> {
           ),
           const SizedBox(width: 12),
           const Icon(
-            LucideIcons.chevronRight,
+            LucideIcons.chevron_right,
             color: NeonColors.secondary,
             size: 20,
           ),
@@ -471,7 +471,7 @@ class _VehiclesTabState extends State<VehiclesTab> {
                 ),
               ),
               ListTile(
-                leading: const Icon(LucideIcons.edit2, color: NeonColors.secondary),
+                leading: const Icon(LucideIcons.pencil, color: NeonColors.secondary),
                 title: const Text('Rename Vehicle', style: TextStyle(color: Colors.white)),
                 onTap: () {
                   Navigator.pop(context);
@@ -479,7 +479,7 @@ class _VehiclesTabState extends State<VehiclesTab> {
                 },
               ),
               ListTile(
-                leading: const Icon(LucideIcons.trash2, color: Colors.redAccent),
+                leading: const Icon(LucideIcons.trash_2, color: Colors.redAccent),
                 title: const Text('Delete Vehicle', style: TextStyle(color: Colors.redAccent)),
                 onTap: () {
                   Navigator.pop(context);

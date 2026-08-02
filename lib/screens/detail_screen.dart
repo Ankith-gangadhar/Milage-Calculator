@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../providers/vehicle_provider.dart';
@@ -33,7 +33,7 @@ class VehicleDetailScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
+          icon: const Icon(LucideIcons.arrow_left, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -110,7 +110,7 @@ class VehicleDetailScreen extends StatelessWidget {
               // Large Add Fuel Button
               NeonButton(
                 text: "Add Fuel Entry",
-                icon: LucideIcons.plusCircle,
+                icon: LucideIcons.circle_plus,
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -229,7 +229,7 @@ class VehicleDetailScreen extends StatelessWidget {
         child: Center(
           child: Column(
             children: [
-              Icon(LucideIcons.trendingUp, color: NeonColors.textSecondary.withOpacity(0.3), size: 36),
+              Icon(LucideIcons.trending_up, color: NeonColors.textSecondary.withOpacity(0.3), size: 36),
               const SizedBox(height: 8),
               const Text(
                 "Need at least 2 entries with calculated mileage to generate trend chart.",
@@ -413,7 +413,7 @@ class VehicleDetailScreen extends StatelessWidget {
           ),
           child: const Row(
             children: [
-              Icon(LucideIcons.edit2, color: Colors.white, size: 20),
+              Icon(LucideIcons.pencil, color: Colors.white, size: 20),
               SizedBox(width: 8),
               Text("Edit Record", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ],
@@ -432,7 +432,7 @@ class VehicleDetailScreen extends StatelessWidget {
             children: [
               Text("Delete", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               SizedBox(width: 8),
-              Icon(LucideIcons.trash2, color: Colors.white, size: 20),
+              Icon(LucideIcons.trash_2, color: Colors.white, size: 20),
             ],
           ),
         ),

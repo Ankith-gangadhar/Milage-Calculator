@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import '../providers/vehicle_provider.dart';
 import '../models/vehicle.dart';
@@ -209,7 +209,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
+          icon: const Icon(LucideIcons.arrow_left, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -324,7 +324,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                           ),
                         ],
                       ),
-                      const Icon(LucideIcons.chevronDown, color: NeonColors.textSecondary, size: 16),
+                      const Icon(LucideIcons.chevron_down, color: NeonColors.textSecondary, size: 16),
                     ],
                   ),
                 ),

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:file_picker/file_picker.dart';
 import '../providers/vehicle_provider.dart';
 import '../widgets/neon_widgets.dart';
@@ -188,7 +188,7 @@ class SettingsScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Icon(LucideIcons.chevronRight, color: NeonColors.textSecondary, size: 16),
+                  Icon(LucideIcons.chevron_right, color: NeonColors.textSecondary, size: 16),
                 ],
               ),
             ),
@@ -219,7 +219,7 @@ class SettingsScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Icon(LucideIcons.chevronRight, color: NeonColors.textSecondary, size: 16),
+                  Icon(LucideIcons.chevron_right, color: NeonColors.textSecondary, size: 16),
                 ],
               ),
             ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../providers/vehicle_provider.dart';
 import '../widgets/neon_widgets.dart';
 
@@ -22,17 +22,17 @@ class DashboardScreen extends StatelessWidget {
       {
         'title': 'Average Mileage',
         'value': avgMileage > 0 ? '${avgMileage.toStringAsFixed(1)} KM/L' : '--',
-        'icon': LucideIcons.trendingUp,
+        'icon': LucideIcons.trending_up,
       },
       {
         'title': 'Highest Mileage',
         'value': highestMileage > 0 ? '${highestMileage.toStringAsFixed(1)} KM/L' : '--',
-        'icon': LucideIcons.arrowUpRight,
+        'icon': LucideIcons.arrow_up_right,
       },
       {
         'title': 'Lowest Mileage',
         'value': lowestMileage > 0 ? '${lowestMileage.toStringAsFixed(1)} KM/L' : '--',
-        'icon': LucideIcons.arrowDownRight,
+        'icon': LucideIcons.arrow_down_right,
       },
       {
         'title': 'Total Distance',
@@ -84,7 +84,7 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                Icon(LucideIcons.barChart2, color: NeonColors.secondary, size: 24),
+                Icon(LucideIcons.chart_bar, color: NeonColors.secondary, size: 24),
               ],
             ),
             const SizedBox(height: 24),
@@ -96,7 +96,7 @@ class DashboardScreen extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(LucideIcons.pieChart, size: 64, color: NeonColors.textSecondary.withOpacity(0.3)),
+                          Icon(LucideIcons.chart_pie, size: 64, color: NeonColors.textSecondary.withOpacity(0.3)),
                           const SizedBox(height: 16),
                           const Text(
                             "Add vehicles and fuel entries\nto view analytics.",
