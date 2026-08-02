@@ -12,10 +12,12 @@ class VehicleProvider with ChangeNotifier {
   final Map<int, List<FuelEntry>> _fuelEntries = {};
   bool _isDarkMode = true; // Default to dark theme
   String _ownerName = "My";
+  double _avgFuelCost = 100.0; // Default to 100.0
 
   List<Vehicle> get vehicles => _vehicles;
   bool get isDarkMode => _isDarkMode;
   String get ownerName => _ownerName;
+  double get avgFuelCost => _avgFuelCost;
 
   // Initialize and load all data from database
   Future<void> loadData() async {
@@ -33,6 +35,13 @@ class VehicleProvider with ChangeNotifier {
       _ownerName = savedName;
     } else {
       _ownerName = "My";
+    }
+
+    final savedCost = await DBHelper.instance.getSetting('avg_fuel_cost');
+    if (savedCost != null) {
+      _avgFuelCost = double.tryParse(savedCost) ?? 100.0;
+    } else {
+      _avgFuelCost = 100.0;
     }
 
     notifyListeners();
@@ -58,6 +67,13 @@ class VehicleProvider with ChangeNotifier {
   Future<void> updateOwnerName(String name) async {
     _ownerName = name.trim().isEmpty ? "My" : name.trim();
     await DBHelper.instance.saveSetting('owner_name', _ownerName);
+    notifyListeners();
+  }
+
+  // Update Average Fuel Cost
+  Future<void> updateAvgFuelCost(double cost) async {
+    _avgFuelCost = cost <= 0 ? 100.0 : cost;
+    await DBHelper.instance.saveSetting('avg_fuel_cost', _avgFuelCost.toString());
     notifyListeners();
   }
 

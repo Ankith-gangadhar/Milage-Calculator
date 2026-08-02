@@ -104,6 +104,62 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  void _showEditFuelCostDialog(BuildContext context, VehicleProvider provider) {
+    final controller = TextEditingController(text: provider.avgFuelCost.toStringAsFixed(2));
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: NeonColors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: NeonColors.border),
+          ),
+          title: const Text("Average Fuel Price", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              NeonTextField(
+                controller: controller,
+                label: "Fuel Price per Liter",
+                hint: "e.g., 102.50",
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                prefixIcon: LucideIcons.banknote,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "Note: If the actual fuel price changes, update it here to adjust estimated cost calculations on the dashboard.",
+                style: TextStyle(color: Colors.orangeAccent, fontSize: 10, height: 1.4),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel", style: TextStyle(color: NeonColors.textSecondary)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final double? price = double.tryParse(controller.text.trim());
+                if (price != null && price > 0) {
+                  provider.updateAvgFuelCost(price);
+                }
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: NeonColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<VehicleProvider>(context);
@@ -178,7 +234,41 @@ class SettingsScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+             const SizedBox(height: 16),
+
+             // Average Fuel Cost Card
+             NeonCard(
+               onTap: () => _showEditFuelCostDialog(context, provider),
+               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+               borderRadius: 16.0,
+               child: Row(
+                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                 children: [
+                   Row(
+                     children: [
+                       const Icon(LucideIcons.banknote, color: NeonColors.secondary, size: 20),
+                       const SizedBox(width: 12),
+                       Column(
+                         crossAxisAlignment: CrossAxisAlignment.start,
+                         children: [
+                           const Text(
+                             "Average Fuel Price",
+                             style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                           ),
+                           const SizedBox(height: 2),
+                           Text(
+                             "Price: ${provider.avgFuelCost.toStringAsFixed(2)} per Liter",
+                             style: const TextStyle(color: NeonColors.textSecondary, fontSize: 11),
+                           ),
+                         ],
+                       ),
+                     ],
+                   ),
+                   const Icon(LucideIcons.chevron_right, color: NeonColors.textSecondary, size: 16),
+                 ],
+               ),
+             ),
+             const SizedBox(height: 16),
 
             // Theme Settings Card
             NeonCard(
