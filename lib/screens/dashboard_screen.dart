@@ -3,20 +3,86 @@ import 'package:provider/provider.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../providers/vehicle_provider.dart';
 import '../widgets/neon_widgets.dart';
+import '../models/vehicle.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  int _selectedTab = 0; // 0 for 2-Wheelers, 1 for 4-Wheelers
+
+  Map<String, dynamic> _calculateStatsForGroup(List<Vehicle> groupVehicles, VehicleProvider provider) {
+    if (groupVehicles.isEmpty) {
+      return {
+        'avgMileage': 0.0,
+        'highestMileage': 0.0,
+        'lowestMileage': 0.0,
+        'totalDistance': 0.0,
+        'totalFuel': 0.0,
+        'totalEntries': 0,
+      };
+    }
+
+    double totalDistance = 0.0;
+    double totalFuel = 0.0;
+    int totalEntries = 0;
+    double highestMileage = 0.0;
+    double lowestMileage = double.infinity;
+    bool foundMileage = false;
+
+    for (var vehicle in groupVehicles) {
+      totalDistance += provider.getVehicleTotalDistance(vehicle);
+      totalFuel += provider.getVehicleTotalFuel(vehicle);
+      
+      final entries = provider.getEntriesForVehicle(vehicle.id ?? -1);
+      totalEntries += entries.length;
+
+      for (var entry in entries) {
+        if (entry.mileage != null && entry.mileage! > 0) {
+          foundMileage = true;
+          if (entry.mileage! > highestMileage) highestMileage = entry.mileage!;
+          if (entry.mileage! < lowestMileage) lowestMileage = entry.mileage!;
+        }
+      }
+    }
+
+    final avgMileage = totalFuel > 0 ? totalDistance / totalFuel : 0.0;
+
+    return {
+      'avgMileage': avgMileage,
+      'highestMileage': highestMileage,
+      'lowestMileage': foundMileage ? lowestMileage : 0.0,
+      'totalDistance': totalDistance,
+      'totalFuel': totalFuel,
+      'totalEntries': totalEntries,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<VehicleProvider>(context);
 
-    final avgMileage = provider.getGlobalAverageMileage();
-    final highestMileage = provider.getGlobalHighestMileage();
-    final lowestMileage = provider.getGlobalLowestMileage();
-    final totalDistance = provider.getGlobalTotalDistance();
-    final totalFuel = provider.getGlobalTotalFuel();
-    final totalEntries = provider.getGlobalTotalEntries();
+    // Filter vehicles by category (2-wheelers vs 4-wheelers)
+    final twoWheelers = provider.vehicles
+        .where((v) => v.type.toLowerCase() == 'bike' || v.type.toLowerCase() == 'scooter')
+        .toList();
+    final fourWheelers = provider.vehicles
+        .where((v) => v.type.toLowerCase() == 'car' || v.type.toLowerCase() == 'truck')
+        .toList();
+
+    final activeVehicles = _selectedTab == 0 ? twoWheelers : fourWheelers;
+    final groupStats = _calculateStatsForGroup(activeVehicles, provider);
+
+    final double avgMileage = groupStats['avgMileage'];
+    final double highestMileage = groupStats['highestMileage'];
+    final double lowestMileage = groupStats['lowestMileage'];
+    final double totalDistance = groupStats['totalDistance'];
+    final double doubleFuel = groupStats['totalFuel'];
+    final int totalEntries = groupStats['totalEntries'];
 
     final List<Map<String, dynamic>> stats = [
       {
@@ -41,7 +107,7 @@ class DashboardScreen extends StatelessWidget {
       },
       {
         'title': 'Total Fuel Used',
-        'value': '${totalFuel.toStringAsFixed(1)} L',
+        'value': '${doubleFuel.toStringAsFixed(1)} L',
         'icon': LucideIcons.fuel,
       },
       {
@@ -75,7 +141,7 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      "Combined stats across all vehicles",
+                      "Fleet statistics and summaries",
                       style: TextStyle(
                         color: NeonColors.textSecondary,
                         fontSize: 12,
@@ -87,21 +153,104 @@ class DashboardScreen extends StatelessWidget {
                 Icon(LucideIcons.chart_bar, color: NeonColors.secondary, size: 24),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
+
+            // Segmented Control Selector
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: NeonColors.cardBg,
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: NeonColors.border, width: 1.0),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedTab = 0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: _selectedTab == 0 ? NeonColors.primary.withOpacity(0.2) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              LucideIcons.bike,
+                              color: _selectedTab == 0 ? NeonColors.secondary : NeonColors.textSecondary,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              "2-Wheelers",
+                              style: TextStyle(
+                                color: _selectedTab == 0 ? Colors.white : NeonColors.textSecondary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedTab = 1),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: _selectedTab == 1 ? NeonColors.primary.withOpacity(0.2) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              LucideIcons.car,
+                              color: _selectedTab == 1 ? NeonColors.secondary : NeonColors.textSecondary,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              "4-Wheelers",
+                              style: TextStyle(
+                                color: _selectedTab == 1 ? Colors.white : NeonColors.textSecondary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
 
             // Stats Cards Grid
             Expanded(
-              child: provider.vehicles.isEmpty
+              child: activeVehicles.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(LucideIcons.chart_pie, size: 64, color: NeonColors.textSecondary.withOpacity(0.3)),
+                          Icon(
+                            _selectedTab == 0 ? LucideIcons.bike : LucideIcons.car,
+                            size: 64,
+                            color: NeonColors.textSecondary.withOpacity(0.3),
+                          ),
                           const SizedBox(height: 16),
-                          const Text(
-                            "Add vehicles and fuel entries\nto view analytics.",
+                          Text(
+                            _selectedTab == 0
+                                ? "No 2-Wheelers added yet.\nAdd a Bike or Scooter to view stats."
+                                : "No 4-Wheelers added yet.\nAdd a Car or Truck to view stats.",
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: NeonColors.textSecondary, fontSize: 16),
+                            style: const TextStyle(color: NeonColors.textSecondary, fontSize: 15),
                           ),
                         ],
                       ),

@@ -25,8 +25,6 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     {'name': 'Bike', 'icon': LucideIcons.bike},
     {'name': 'Scooter', 'icon': LucideIcons.toy_brick}, // Custom representation
     {'name': 'Truck', 'icon': LucideIcons.truck},
-    {'name': 'Bus', 'icon': LucideIcons.bus},
-    {'name': 'Van', 'icon': LucideIcons.truck},
   ];
 
   @override

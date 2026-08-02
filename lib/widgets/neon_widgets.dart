@@ -242,24 +242,12 @@ class NeonCircleGauge extends StatelessWidget {
             ),
           ),
           // Circular progress ring
-          ShaderMask(
-            shaderCallback: (rect) {
-              return const SweepGradient(
-                startAngle: 0.0,
-                endAngle: 3.14 * 2,
-                stops: [0.0, 0.5, 1.0],
-                colors: [NeonColors.primary, NeonColors.secondary, NeonColors.primary],
-              ).createShader(rect);
-            },
-            child: SizedBox(
-              width: size,
-              height: size,
-              child: CircularProgressIndicator(
-                value: percentage,
-                strokeWidth: 10,
-                backgroundColor: Colors.white.withOpacity(0.08),
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-              ),
+          CustomPaint(
+            size: Size(size, size),
+            painter: _CircleGaugePainter(
+              percentage: percentage,
+              primaryColor: NeonColors.primary,
+              secondaryColor: NeonColors.secondary,
             ),
           ),
           // Text Details
@@ -290,6 +278,57 @@ class NeonCircleGauge extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// Custom Painter for a perfect circular progress gauge
+class _CircleGaugePainter extends CustomPainter {
+  final double percentage;
+  final Color primaryColor;
+  final Color secondaryColor;
+
+  _CircleGaugePainter({
+    required this.percentage,
+    required this.primaryColor,
+    required this.secondaryColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - 10) / 2; // Subtract stroke width to prevent clipping
+    
+    // Draw background track circle
+    final bgPaint = Paint()
+      ..color = Colors.white.withOpacity(0.08)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10;
+    canvas.drawCircle(center, radius, bgPaint);
+
+    if (percentage > 0) {
+      // Draw progress arc
+      final rect = Rect.fromCircle(center: center, radius: radius);
+      final progressPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 10
+        ..strokeCap = StrokeCap.round; // Smooth rounded edges
+
+      progressPaint.shader = SweepGradient(
+        colors: [primaryColor, secondaryColor, primaryColor],
+        stops: const [0.0, 0.5, 1.0],
+        transform: const GradientRotation(-3.1415926535 / 2), // Rotate to start at 12 o'clock
+      ).createShader(rect);
+
+      // Start angle is -pi/2 (top), sweep angle is percentage * 2 * pi
+      canvas.drawArc(rect, -3.1415926535 / 2, percentage * 2 * 3.1415926535, false, progressPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CircleGaugePainter oldDelegate) {
+    return oldDelegate.percentage != percentage ||
+        oldDelegate.primaryColor != primaryColor ||
+        oldDelegate.secondaryColor != secondaryColor;
   }
 }
 

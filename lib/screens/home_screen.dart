@@ -394,23 +394,6 @@ class _VehiclesTabState extends State<VehiclesTab> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    if (vehicle.useReserveOffset)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: NeonColors.secondary.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: NeonColors.secondary.withOpacity(0.3), width: 0.8),
-                        ),
-                        child: const Text(
-                          "Reserve Offset",
-                          style: TextStyle(
-                            color: NeonColors.secondary,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ],
