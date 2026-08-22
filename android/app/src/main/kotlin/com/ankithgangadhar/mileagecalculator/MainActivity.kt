@@ -1,4 +1,4 @@
-package com.example.milage_calculator
+package com.ankithgangadhar.mileagecalculator
 
 import io.flutter.embedding.android.FlutterActivity
 

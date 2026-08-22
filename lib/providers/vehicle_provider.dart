@@ -170,95 +170,12 @@ class VehicleProvider with ChangeNotifier {
     // 1. Fetch raw entries from DB
     List<FuelEntry> rawEntries = await DBHelper.instance.getFuelEntries(vehicleId);
 
-    // 2. Sort chronologically (oldest to newest) for recalculation
-    rawEntries.sort((a, b) {
-      final dateCompare = a.date.compareTo(b.date);
-      if (dateCompare != 0) return dateCompare;
-      return a.odometer.compareTo(b.odometer);
-    });
+    // 2. Recalculate using pure function
+    final updatedEntries = recalculateFuelEntriesList(rawEntries, vehicle);
 
-    // 3. Recalculate each entry
-    for (int i = 0; i < rawEntries.length; i++) {
-      final current = rawEntries[i];
-
-      if (current.reserveOdometer == null) {
-        // Refueled BEFORE reserve was reached
-        final double prevRefillOdo = i == 0 ? vehicle.initialOdometer : rawEntries[i - 1].odometer;
-        final double dist = current.odometer - prevRefillOdo;
-
-        rawEntries[i] = current.copyWith(
-          reserveOffset: 0.0,
-          distance: dist,
-          mileage: null, // Mileage cannot be calculated yet
-        );
-      } else {
-        // Refueled AFTER reserve was reached (Reserve Offset Mode)
-        // Find the index of the most recent previous entry where reserve was reached
-        int startIndex = -1;
-        for (int k = i - 1; k >= 0; k--) {
-          if (rawEntries[k].reserveOdometer != null) {
-            startIndex = k;
-            break;
-          }
-        }
-
-        double startRefillOdo;
-        double startOffset;
-        int sumStartIdx;
-
-        if (startIndex != -1) {
-          startRefillOdo = rawEntries[startIndex].odometer;
-          startOffset = rawEntries[startIndex].reserveOffset ?? 0.0;
-          sumStartIdx = startIndex;
-        } else {
-          // No previous reserve entry exists
-          if (i > 0) {
-            startRefillOdo = rawEntries[0].odometer;
-            startOffset = 0.0;
-            sumStartIdx = 0;
-          } else {
-            // This is the first entry and it is a reserve entry
-            startRefillOdo = vehicle.initialOdometer;
-            startOffset = 0.0;
-            sumStartIdx = 0;
-          }
-        }
-
-        final double reserveOdo = current.reserveOdometer!;
-        final double offset = current.odometer - reserveOdo;
-        
-        double actualDist;
-        double? mileage;
-
-        if (i == 0) {
-          // First entry, no mileage calculation possible yet
-          actualDist = 0.0;
-          mileage = null;
-        } else {
-          final double displayedDist = reserveOdo - startRefillOdo;
-          actualDist = displayedDist - startOffset;
-
-          // Sum litres of all entries from sumStartIdx to i-1
-          double totalLitres = 0.0;
-          for (int p = sumStartIdx; p < i; p++) {
-            totalLitres += rawEntries[p].litres;
-          }
-
-          if (totalLitres > 0) {
-            mileage = actualDist / totalLitres;
-          }
-        }
-
-        rawEntries[i] = current.copyWith(
-          reserveOdometer: reserveOdo,
-          reserveOffset: offset,
-          distance: actualDist,
-          mileage: mileage,
-        );
-      }
-
-      // Update in SQLite
-      await DBHelper.instance.updateFuelEntry(rawEntries[i]);
+    // 3. Update in SQLite
+    for (var entry in updatedEntries) {
+      await DBHelper.instance.updateFuelEntry(entry);
     }
 
     // 4. Reload full app data to sync memory with DB
@@ -497,4 +414,95 @@ class VehicleProvider with ChangeNotifier {
       return false;
     }
   }
+}
+
+List<FuelEntry> recalculateFuelEntriesList(List<FuelEntry> rawEntries, Vehicle vehicle) {
+  // Sort chronologically (oldest to newest) for recalculation
+  final sortedEntries = List<FuelEntry>.from(rawEntries)..sort((a, b) {
+    final dateCompare = a.date.compareTo(b.date);
+    if (dateCompare != 0) return dateCompare;
+    return a.odometer.compareTo(b.odometer);
+  });
+
+  for (int i = 0; i < sortedEntries.length; i++) {
+    final current = sortedEntries[i];
+
+    if (current.reserveOdometer == null) {
+      // Refueled BEFORE reserve was reached
+      final double prevRefillOdo = i == 0 ? vehicle.initialOdometer : sortedEntries[i - 1].odometer;
+      final double dist = current.odometer - prevRefillOdo;
+
+      sortedEntries[i] = current.copyWith(
+        reserveOffset: 0.0,
+        distance: dist,
+        mileage: null, // Mileage cannot be calculated yet
+      );
+    } else {
+      // Refueled AFTER reserve was reached (Reserve Offset Mode)
+      // Find the index of the most recent previous entry where reserve was reached
+      int startIndex = -1;
+      for (int k = i - 1; k >= 0; k--) {
+        if (sortedEntries[k].reserveOdometer != null) {
+          startIndex = k;
+          break;
+        }
+      }
+
+      double startRefillOdo;
+      double startOffset;
+      int sumStartIdx;
+
+      if (startIndex != -1) {
+        startRefillOdo = sortedEntries[startIndex].odometer;
+        startOffset = sortedEntries[startIndex].reserveOffset ?? 0.0;
+        sumStartIdx = startIndex;
+      } else {
+        // No previous reserve entry exists
+        if (i > 0) {
+          startRefillOdo = sortedEntries[0].odometer;
+          startOffset = 0.0;
+          sumStartIdx = 0;
+        } else {
+          // This is the first entry and it is a reserve entry
+          startRefillOdo = vehicle.initialOdometer;
+          startOffset = 0.0;
+          sumStartIdx = 0;
+        }
+      }
+
+      final double reserveOdo = current.reserveOdometer!;
+      final double offset = current.odometer - reserveOdo;
+      
+      double actualDist;
+      double? mileage;
+
+      if (i == 0) {
+        // First entry, no mileage calculation possible yet
+        actualDist = 0.0;
+        mileage = null;
+      } else {
+        final double displayedDist = reserveOdo - startRefillOdo;
+        actualDist = displayedDist + startOffset;
+
+        // Sum litres of all entries from sumStartIdx to i-1
+        double totalLitres = 0.0;
+        for (int p = sumStartIdx; p < i; p++) {
+          totalLitres += sortedEntries[p].litres;
+        }
+
+        if (totalLitres > 0) {
+          mileage = actualDist / totalLitres;
+        }
+      }
+
+      sortedEntries[i] = current.copyWith(
+        reserveOdometer: reserveOdo,
+        reserveOffset: offset,
+        distance: actualDist,
+        mileage: mileage,
+      );
+    }
+  }
+
+  return sortedEntries;
 }
