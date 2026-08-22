@@ -518,7 +518,7 @@ class VehicleDetailScreen extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           entry.bunkName ?? "Unknown Station",
-                          style: const TextStyle(color: Colors.white75, fontSize: 11),
+                          style: const TextStyle(color: Colors.white70, fontSize: 11),
                         ),
                       ],
                     ),
@@ -592,6 +592,7 @@ class VehicleDetailScreen extends StatelessWidget {
                   ],
                 ),
               ],
+            ],
           ),
         ),
       ),
