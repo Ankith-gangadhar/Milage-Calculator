@@ -117,6 +117,9 @@ class VehicleProvider with ChangeNotifier {
     required double litres,
     required DateTime date,
     double? reserveOdometer,
+    double? rate,
+    String? fuelType,
+    String? bunkName,
   }) async {
     final vehicle = _vehicles.firstWhere((v) => v.id == vehicleId);
     
@@ -127,6 +130,9 @@ class VehicleProvider with ChangeNotifier {
       litres: litres,
       date: date,
       reserveOdometer: reserveOdometer,
+      rate: rate,
+      fuelType: fuelType,
+      bunkName: bunkName,
     );
 
     // Save temporarily in db
@@ -143,6 +149,9 @@ class VehicleProvider with ChangeNotifier {
     required double litres,
     required DateTime date,
     double? reserveOdometer,
+    double? rate,
+    String? fuelType,
+    String? bunkName,
   }) async {
     final vehicle = _vehicles.firstWhere((v) => v.id == vehicleId);
     final existingEntry = (_fuelEntries[vehicleId] ?? []).firstWhere((e) => e.id == entryId);
@@ -152,6 +161,9 @@ class VehicleProvider with ChangeNotifier {
       litres: litres,
       date: date,
       reserveOdometer: reserveOdometer,
+      rate: rate,
+      fuelType: fuelType,
+      bunkName: bunkName,
     );
 
     await DBHelper.instance.updateFuelEntry(updatedEntry);

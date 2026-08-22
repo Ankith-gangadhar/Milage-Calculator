@@ -86,7 +86,7 @@ class VehicleDetailScreen extends StatelessWidget {
                         const SizedBox(height: 8),
                         _buildSmallStatTile("Total Distance", "${totalDistance.toStringAsFixed(0)} KM", LucideIcons.navigation),
                         const SizedBox(height: 8),
-                        _buildSmallStatTile("Total Fuel", "${totalFuel.toStringAsFixed(1)} L", LucideIcons.fuel),
+                        _buildSmallStatTile("Total Fuel", "${totalFuel.toStringAsFixed(2)} L", LucideIcons.fuel),
                       ],
                     ),
                   ),
@@ -169,8 +169,7 @@ class VehicleDetailScreen extends StatelessWidget {
                       itemCount: entries.length,
                       padding: const EdgeInsets.only(bottom: 40),
                       itemBuilder: (context, index) {
-                        final entry = entries[index];
-                        return _buildDismissibleHistoryRow(context, provider, currentVehicle, entry);
+                        return _buildDismissibleHistoryRow(context, provider, currentVehicle, entries, index);
                       },
                     ),
             ],
@@ -350,9 +349,19 @@ class VehicleDetailScreen extends StatelessWidget {
 
   // Swipeable History List Row Builder
   Widget _buildDismissibleHistoryRow(
-      BuildContext context, VehicleProvider provider, Vehicle vehicle, FuelEntry entry) {
+      BuildContext context, VehicleProvider provider, Vehicle vehicle, List<FuelEntry> entries, int index) {
+    final entry = entries[index];
     final formattedDate = DateFormat('dd MMM yyyy').format(entry.date);
     
+    // Find the previous reserve entry (which starts this fuel cycle)
+    FuelEntry? prevReserveEntry;
+    for (int k = index + 1; k < entries.length; k++) {
+      if (entries[k].reserveOdometer != null) {
+        prevReserveEntry = entries[k];
+        break;
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Dismissible(
@@ -465,7 +474,7 @@ class VehicleDetailScreen extends StatelessWidget {
                           Icon(LucideIcons.fuel, color: NeonColors.textSecondary.withOpacity(0.6), size: 12),
                           const SizedBox(width: 4),
                           Text(
-                            "${entry.litres.toStringAsFixed(1)} L",
+                            "${entry.litres.toStringAsFixed(2)} L",
                             style: const TextStyle(color: NeonColors.textSecondary, fontSize: 11),
                           ),
                         ],
@@ -497,6 +506,45 @@ class VehicleDetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
+              // Entry's specific fuel details
+              if (entry.bunkName != null || entry.rate != null || entry.fuelType != null) ...[
+                const Divider(color: NeonColors.border, height: 16, thickness: 0.5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.map_pin, color: NeonColors.secondary, size: 12),
+                        const SizedBox(width: 4),
+                        Text(
+                          entry.bunkName ?? "Unknown Station",
+                          style: const TextStyle(color: Colors.white75, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      "${entry.fuelType ?? 'Petrol'}${entry.rate != null ? ' @ ₹${entry.rate!.toStringAsFixed(2)}/L' : ''}",
+                      style: const TextStyle(color: NeonColors.textSecondary, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ],
+              // Cycle Bunk origin
+              if (entry.mileage != null && prevReserveEntry != null && prevReserveEntry.bunkName != null) ...[
+                const Divider(color: NeonColors.border, height: 12, thickness: 0.5),
+                Row(
+                  children: [
+                    const Icon(LucideIcons.info, color: NeonColors.primary, size: 12),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        "Mileage achieved using fuel filled at: ${prevReserveEntry.bunkName}",
+                        style: const TextStyle(color: NeonColors.primary, fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               // Extra row for Reserve details if in Reserve Offset Mode
               if (vehicle.useReserveOffset && entry.reserveOdometer != null) ...[
                 const Divider(color: NeonColors.border, height: 16, thickness: 0.5),
@@ -544,7 +592,6 @@ class VehicleDetailScreen extends StatelessWidget {
                   ],
                 ),
               ],
-            ],
           ),
         ),
       ),

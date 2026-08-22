@@ -8,6 +8,9 @@ class FuelEntry {
   final double? reserveOffset;
   final double? distance;
   final double? mileage;
+  final double? rate;
+  final String? fuelType;
+  final String? bunkName;
 
   FuelEntry({
     this.id,
@@ -19,6 +22,9 @@ class FuelEntry {
     this.reserveOffset,
     this.distance,
     this.mileage,
+    this.rate,
+    this.fuelType,
+    this.bunkName,
   });
 
   Map<String, dynamic> toMap() {
@@ -32,6 +38,9 @@ class FuelEntry {
       'reserveOffset': reserveOffset,
       'distance': distance,
       'mileage': mileage,
+      'rate': rate,
+      'fuelType': fuelType,
+      'bunkName': bunkName,
     };
   }
 
@@ -46,6 +55,9 @@ class FuelEntry {
       reserveOffset: map['reserveOffset'] != null ? (map['reserveOffset'] as num).toDouble() : null,
       distance: map['distance'] != null ? (map['distance'] as num).toDouble() : null,
       mileage: map['mileage'] != null ? (map['mileage'] as num).toDouble() : null,
+      rate: map['rate'] != null ? (map['rate'] as num).toDouble() : null,
+      fuelType: map['fuelType'] as String?,
+      bunkName: map['bunkName'] as String?,
     );
   }
 
@@ -59,6 +71,9 @@ class FuelEntry {
     double? reserveOffset,
     double? distance,
     double? mileage,
+    double? rate,
+    String? fuelType,
+    String? bunkName,
   }) {
     return FuelEntry(
       id: id ?? this.id,
@@ -70,6 +85,9 @@ class FuelEntry {
       reserveOffset: reserveOffset ?? this.reserveOffset,
       distance: distance ?? this.distance,
       mileage: mileage ?? this.mileage,
+      rate: rate ?? this.rate,
+      fuelType: fuelType ?? this.fuelType,
+      bunkName: bunkName ?? this.bunkName,
     );
   }
 }

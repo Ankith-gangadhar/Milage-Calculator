@@ -22,7 +22,7 @@ class DBHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
       onConfigure: _configureDB,
@@ -37,6 +37,11 @@ class DBHelper {
           value TEXT
         )
       ''');
+    }
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE fuel_entries ADD COLUMN rate REAL');
+      await db.execute('ALTER TABLE fuel_entries ADD COLUMN fuelType TEXT');
+      await db.execute('ALTER TABLE fuel_entries ADD COLUMN bunkName TEXT');
     }
   }
 
@@ -67,6 +72,9 @@ class DBHelper {
         reserveOffset REAL,
         distance REAL,
         mileage REAL,
+        rate REAL,
+        fuelType TEXT,
+        bunkName TEXT,
         FOREIGN KEY (vehicleId) REFERENCES vehicles (id) ON DELETE CASCADE
       )
     ''');

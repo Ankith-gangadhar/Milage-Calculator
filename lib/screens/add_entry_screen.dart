@@ -21,6 +21,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   final _odoController = TextEditingController();
   final _litresController = TextEditingController();
   final _reserveOdoController = TextEditingController();
+  final _rateController = TextEditingController();
+  final _fuelTypeController = TextEditingController();
+  final _bunkNameController = TextEditingController();
   
   late DateTime _selectedDate;
   bool _reserveIndicatorReached = false;
@@ -28,6 +31,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   String? _odoError;
   String? _litresError;
   String? _reserveOdoError;
+  String? _rateError;
 
   @override
   void initState() {
@@ -40,8 +44,12 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       if (_reserveIndicatorReached) {
         _reserveOdoController.text = widget.editEntry!.reserveOdometer!.toStringAsFixed(1);
       }
+      _rateController.text = widget.editEntry!.rate != null ? widget.editEntry!.rate!.toStringAsFixed(2) : '';
+      _fuelTypeController.text = widget.editEntry!.fuelType ?? 'Petrol';
+      _bunkNameController.text = widget.editEntry!.bunkName ?? '';
     } else {
       _selectedDate = DateTime.now();
+      _fuelTypeController.text = 'Petrol';
     }
   }
 
@@ -50,6 +58,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     _odoController.dispose();
     _litresController.dispose();
     _reserveOdoController.dispose();
+    _rateController.dispose();
+    _fuelTypeController.dispose();
+    _bunkNameController.dispose();
     super.dispose();
   }
 
@@ -86,11 +97,15 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       _odoError = null;
       _litresError = null;
       _reserveOdoError = null;
+      _rateError = null;
     });
 
     final odoStr = _odoController.text.trim();
     final litresStr = _litresController.text.trim();
     final reserveOdoStr = _reserveOdoController.text.trim();
+    final rateStr = _rateController.text.trim();
+    final fuelType = _fuelTypeController.text.trim().isEmpty ? 'Petrol' : _fuelTypeController.text.trim();
+    final bunkName = _bunkNameController.text.trim().isEmpty ? null : _bunkNameController.text.trim();
 
     bool hasError = false;
 
@@ -102,6 +117,16 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     } else if (litres == null || litres <= 0) {
       _litresError = "Enter a valid positive fuel amount";
       hasError = true;
+    }
+
+    // Validate Rate (Optional but must be positive if entered)
+    double? rate;
+    if (rateStr.isNotEmpty) {
+      rate = double.tryParse(rateStr);
+      if (rate == null || rate <= 0) {
+        _rateError = "Enter a valid positive price per litre";
+        hasError = true;
+      }
     }
 
     // Get sibling entries for validation
@@ -193,6 +218,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         litres: litres!,
         date: _selectedDate,
         reserveOdometer: reserveOdo,
+        rate: rate,
+        fuelType: fuelType,
+        bunkName: bunkName,
       );
     } else {
       provider.addFuelEntry(
@@ -201,6 +229,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         litres: litres!,
         date: _selectedDate,
         reserveOdometer: reserveOdo,
+        rate: rate,
+        fuelType: fuelType,
+        bunkName: bunkName,
       );
     }
 
@@ -209,6 +240,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<VehicleProvider>(context);
     final isEditing = widget.editEntry != null;
 
     return Scaffold(
@@ -358,6 +390,37 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 prefixIcon: LucideIcons.droplets,
                 errorText: _litresError,
+              ),
+              const SizedBox(height: 24),
+
+              // Fuel Type Input
+              NeonTextField(
+                controller: _fuelTypeController,
+                label: "Fuel Type",
+                hint: "e.g., Petrol, Diesel, Power Petrol (default: Petrol)",
+                keyboardType: TextInputType.text,
+                prefixIcon: LucideIcons.fuel,
+              ),
+              const SizedBox(height: 24),
+
+              // Rate per Litre Input
+              NeonTextField(
+                controller: _rateController,
+                label: "Rate per Litre (Optional)",
+                hint: "Default: ₹${provider.avgFuelCost.toStringAsFixed(2)} / L",
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                prefixIcon: LucideIcons.banknote,
+                errorText: _rateError,
+              ),
+              const SizedBox(height: 24),
+
+              // Petrol Bunk Name Input
+              NeonTextField(
+                controller: _bunkNameController,
+                label: "Petrol Bunk Name (Optional)",
+                hint: "e.g., HP bunk, Shell bunk",
+                keyboardType: TextInputType.text,
+                prefixIcon: LucideIcons.map_pin,
               ),
               const SizedBox(height: 24),
 

@@ -61,6 +61,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     double totalDistance = 0.0;
     double totalFuel = 0.0;
+    double totalCost = 0.0;
     int totalEntries = 0;
     double highestMileage = 0.0;
     double lowestMileage = double.infinity;
@@ -79,6 +80,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           totalDistance += entry.distance ?? 0.0;
         }
         totalFuel += entry.litres;
+        
+        final rate = entry.rate ?? provider.avgFuelCost;
+        totalCost += entry.litres * rate;
 
         if (entry.mileage != null && entry.mileage! > 0) {
           foundMileage = true;
@@ -96,6 +100,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'lowestMileage': foundMileage ? lowestMileage : 0.0,
       'totalDistance': totalDistance,
       'totalFuel': totalFuel,
+      'totalCost': totalCost,
       'totalEntries': totalEntries,
     };
   }
@@ -124,9 +129,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final double totalDistance = groupStats['totalDistance'];
     final double doubleFuel = groupStats['totalFuel'];
     final int totalEntries = groupStats['totalEntries'];
-
-    // Costs calculations for the selected period
-    final totalCost = doubleFuel * provider.avgFuelCost;
+    final double totalCost = groupStats['totalCost'];
 
     final List<Map<String, dynamic>> stats = [
       {
@@ -151,7 +154,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
       {
         'title': 'Total Fuel Used',
-        'value': '${doubleFuel.toStringAsFixed(1)} L',
+        'value': '${doubleFuel.toStringAsFixed(2)} L',
         'icon': LucideIcons.fuel,
       },
       {
@@ -422,7 +425,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             style: TextStyle(color: NeonColors.textSecondary, fontSize: 12),
                           ),
                           Text(
-                            "${doubleFuel.toStringAsFixed(1)} Litres",
+                            "${doubleFuel.toStringAsFixed(2)} Litres",
                             style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
                           ),
                         ],

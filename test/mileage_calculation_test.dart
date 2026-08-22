@@ -22,6 +22,9 @@ void main() {
           litres: 3.34,
           date: DateTime.parse('2026-07-27T00:00:00.000'),
           reserveOdometer: 48365.0,
+          rate: 102.50,
+          fuelType: 'Power Petrol',
+          bunkName: 'Shell Bunk Whitefield',
         ),
         FuelEntry(
           id: 15,
@@ -30,6 +33,9 @@ void main() {
           litres: 1.36,
           date: DateTime.parse('2026-08-18T18:45:15.548'),
           reserveOdometer: 48454.0,
+          rate: 101.20,
+          fuelType: 'Petrol',
+          bunkName: 'HP Bunk Marathahalli',
         ),
       ];
 
@@ -40,6 +46,9 @@ void main() {
       expect(entryJul27.distance, 0.0);
       expect(entryJul27.reserveOffset, 3.0); // 48368 - 48365
       expect(entryJul27.mileage, isNull);
+      expect(entryJul27.rate, 102.50);
+      expect(entryJul27.fuelType, 'Power Petrol');
+      expect(entryJul27.bunkName, 'Shell Bunk Whitefield');
 
       // Verify August 18 entry
       final entryAug18 = result.firstWhere((e) => e.id == 15);
@@ -49,6 +58,9 @@ void main() {
       expect(entryAug18.reserveOffset, 9.0); // 48463 - 48454
       // mileage: distance / prev_litres = 89.0 / 3.34
       expect(entryAug18.mileage, closeTo(26.6467, 0.0001));
+      expect(entryAug18.rate, 101.20);
+      expect(entryAug18.fuelType, 'Petrol');
+      expect(entryAug18.bunkName, 'HP Bunk Marathahalli');
     });
 
     test('GT 650 mileage calculation with mixed entries', () {
@@ -68,6 +80,9 @@ void main() {
           litres: 3.43,
           date: DateTime.parse('2026-07-28T00:00:00.000'),
           reserveOdometer: 210.0,
+          rate: 100.0,
+          fuelType: 'Petrol',
+          bunkName: 'Bunk A',
         ),
         FuelEntry(
           id: 10,
@@ -76,6 +91,9 @@ void main() {
           litres: 3.16,
           date: DateTime.parse('2026-08-06T22:02:42.790'),
           reserveOdometer: null, // Refueled before reserve
+          rate: 98.50,
+          fuelType: 'Diesel',
+          bunkName: 'Bunk B',
         ),
         FuelEntry(
           id: 11,
@@ -84,6 +102,9 @@ void main() {
           litres: 1.8,
           date: DateTime.parse('2026-08-13T10:01:41.910'),
           reserveOdometer: 356.0,
+          rate: 103.00,
+          fuelType: 'Power Petrol',
+          bunkName: 'Bunk C',
         ),
         FuelEntry(
           id: 14,
@@ -118,12 +139,16 @@ void main() {
       expect(e8.distance, 0.0);
       expect(e8.reserveOffset, 1.0);
       expect(e8.mileage, isNull);
+      expect(e8.bunkName, 'Bunk A');
 
       // 2. Entry 10 (Aug 6) - Refueled before reserve
       final e10 = result.firstWhere((e) => e.id == 10);
       expect(e10.distance, 64.0); // 275 - 211
       expect(e10.reserveOffset, 0.0);
       expect(e10.mileage, isNull);
+      expect(e10.rate, 98.50);
+      expect(e10.fuelType, 'Diesel');
+      expect(e10.bunkName, 'Bunk B');
 
       // 3. Entry 11 (Aug 13) - Reserve reached
       final e11 = result.firstWhere((e) => e.id == 11);
@@ -133,6 +158,9 @@ void main() {
       expect(e11.reserveOffset, 5.0);
       // mileage: 146.0 / (3.43 + 3.16) = 146.0 / 6.59
       expect(e11.mileage, closeTo(22.1547, 0.0001));
+      expect(e11.rate, 103.00);
+      expect(e11.fuelType, 'Power Petrol');
+      expect(e11.bunkName, 'Bunk C');
 
       // 4. Entry 14 (Aug 18) - Reserve reached
       final e14 = result.firstWhere((e) => e.id == 14);
