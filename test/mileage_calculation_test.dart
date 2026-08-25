@@ -41,23 +41,23 @@ void main() {
 
       final result = recalculateFuelEntriesList(entries, vehicle);
 
-      // Verify July 27 entry
+      // Verify July 27 entry (start of cycle ending at Aug 18)
       final entryJul27 = result.firstWhere((e) => e.id == 7);
-      expect(entryJul27.distance, 0.0);
+      // reserve-to-reserve distance: 48454 - 48365 = 89 km
+      // Or by formula: (48454 - 48368) + 3.0 = 89.0 km
+      expect(entryJul27.distance, 89.0);
       expect(entryJul27.reserveOffset, 3.0); // 48368 - 48365
-      expect(entryJul27.mileage, isNull);
+      // mileage: distance / prev_litres = 89.0 / 3.34
+      expect(entryJul27.mileage, closeTo(26.6467, 0.0001));
       expect(entryJul27.rate, 102.50);
       expect(entryJul27.fuelType, 'Power Petrol');
       expect(entryJul27.bunkName, 'Shell Bunk Whitefield');
 
-      // Verify August 18 entry
+      // Verify August 18 entry (end of cycle/start of next)
       final entryAug18 = result.firstWhere((e) => e.id == 15);
-      // reserve-to-reserve distance: 48454 - 48365 = 89 km
-      // Or by formula: (48454 - 48368) + 3.0 = 89.0 km
-      expect(entryAug18.distance, 89.0);
+      expect(entryAug18.distance, 95.0); // 48463 - 48368
       expect(entryAug18.reserveOffset, 9.0); // 48463 - 48454
-      // mileage: distance / prev_litres = 89.0 / 3.34
-      expect(entryAug18.mileage, closeTo(26.6467, 0.0001));
+      expect(entryAug18.mileage, isNull);
       expect(entryAug18.rate, 101.20);
       expect(entryAug18.fuelType, 'Petrol');
       expect(entryAug18.bunkName, 'HP Bunk Marathahalli');
@@ -134,11 +134,14 @@ void main() {
 
       final result = recalculateFuelEntriesList(entries, vehicle);
 
-      // 1. Entry 8 (Jul 28)
+      // 1. Entry 8 (Jul 28) - Start of cycle ending at Entry 11
       final e8 = result.firstWhere((e) => e.id == 8);
-      expect(e8.distance, 0.0);
+      // reserve-to-reserve distance since Entry 8: 356 - 210 = 146.0 km
+      // Or by formula: (356 - 211) + 1.0 = 146.0 km
+      expect(e8.distance, 146.0);
       expect(e8.reserveOffset, 1.0);
-      expect(e8.mileage, isNull);
+      // mileage: 146.0 / (3.43 + 3.16) = 146.0 / 6.59
+      expect(e8.mileage, closeTo(22.1547, 0.0001));
       expect(e8.bunkName, 'Bunk A');
 
       // 2. Entry 10 (Aug 6) - Refueled before reserve
@@ -150,44 +153,41 @@ void main() {
       expect(e10.fuelType, 'Diesel');
       expect(e10.bunkName, 'Bunk B');
 
-      // 3. Entry 11 (Aug 13) - Reserve reached
+      // 3. Entry 11 (Aug 13) - Start of cycle ending at Entry 14
       final e11 = result.firstWhere((e) => e.id == 11);
-      // reserve-to-reserve distance since Entry 8: 356 - 210 = 146.0 km
-      // Or by formula: (356 - 211) + 1.0 = 146.0 km
-      expect(e11.distance, 146.0);
+      // reserve-to-reserve distance since Entry 11: 394 - 356 = 38.0 km
+      // Or by formula: (394 - 361) + 5.0 = 38.0 km
+      expect(e11.distance, 38.0);
       expect(e11.reserveOffset, 5.0);
-      // mileage: 146.0 / (3.43 + 3.16) = 146.0 / 6.59
-      expect(e11.mileage, closeTo(22.1547, 0.0001));
+      // mileage: 38.0 / 1.8 = 21.1111
+      expect(e11.mileage, closeTo(21.1111, 0.0001));
       expect(e11.rate, 103.00);
       expect(e11.fuelType, 'Power Petrol');
       expect(e11.bunkName, 'Bunk C');
 
-      // 4. Entry 14 (Aug 18) - Reserve reached
+      // 4. Entry 14 (Aug 18) - Start of cycle ending at Entry 16
       final e14 = result.firstWhere((e) => e.id == 14);
-      // reserve-to-reserve distance since Entry 11: 394 - 356 = 38.0 km
-      // Or by formula: (394 - 361) + 5.0 = 38.0 km
-      expect(e14.distance, 38.0);
-      expect(e14.reserveOffset, 3.0);
-      // mileage: 38.0 / 1.8 = 21.1111
-      expect(e14.mileage, closeTo(21.1111, 0.0001));
-
-      // 5. Entry 16 (Aug 19) - Reserve reached
-      final e16 = result.firstWhere((e) => e.id == 16);
       // reserve-to-reserve distance since Entry 14: 436 - 394 = 42.0 km
       // Or by formula: (436 - 397) + 3.0 = 42.0 km
-      expect(e16.distance, 42.0);
-      expect(e16.reserveOffset, 0.0);
+      expect(e14.distance, 42.0);
+      expect(e14.reserveOffset, 3.0);
       // mileage: 42.0 / 1.8 = 23.3333
-      expect(e16.mileage, closeTo(23.3333, 0.0001));
+      expect(e14.mileage, closeTo(23.3333, 0.0001));
 
-      // 6. Entry 18 (Aug 22) - Reserve reached
-      final e18 = result.firstWhere((e) => e.id == 18);
+      // 5. Entry 16 (Aug 19) - Start of cycle ending at Entry 18
+      final e16 = result.firstWhere((e) => e.id == 16);
       // reserve-to-reserve distance since Entry 16: 460 - 436 = 24.0 km
       // Or by formula: (460 - 436) + 0.0 = 24.0 km
-      expect(e18.distance, 24.0);
-      expect(e18.reserveOffset, 1.0);
+      expect(e16.distance, 24.0);
+      expect(e16.reserveOffset, 0.0);
       // mileage: 24.0 / 1.25 = 19.2
-      expect(e18.mileage, closeTo(19.2, 0.0001));
+      expect(e16.mileage, closeTo(19.2, 0.0001));
+
+      // 6. Entry 18 (Aug 22) - End of latest cycle / start of next
+      final e18 = result.firstWhere((e) => e.id == 18);
+      expect(e18.distance, 25.0); // 461 - 436
+      expect(e18.reserveOffset, 1.0);
+      expect(e18.mileage, isNull);
     });
   });
 }

@@ -529,22 +529,6 @@ class VehicleDetailScreen extends StatelessWidget {
                   ],
                 ),
               ],
-              // Cycle Bunk origin
-              if (entry.mileage != null && prevReserveEntry != null && prevReserveEntry.bunkName != null) ...[
-                const Divider(color: NeonColors.border, height: 12, thickness: 0.5),
-                Row(
-                  children: [
-                    const Icon(LucideIcons.info, color: NeonColors.primary, size: 12),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        "Mileage achieved using fuel filled at: ${prevReserveEntry.bunkName}",
-                        style: const TextStyle(color: NeonColors.primary, fontSize: 10, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
               // Extra row for Reserve details if in Reserve Offset Mode
               if (vehicle.useReserveOffset && entry.reserveOdometer != null) ...[
                 const Divider(color: NeonColors.border, height: 16, thickness: 0.5),
@@ -574,20 +558,6 @@ class VehicleDetailScreen extends StatelessWidget {
                     Text(
                       "Offset: ${entry.reserveOffset?.toStringAsFixed(0)} km",
                       style: const TextStyle(color: NeonColors.textSecondary, fontSize: 10, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ] else if (vehicle.useReserveOffset && entry.reserveOdometer == null) ...[
-                const Divider(color: NeonColors.border, height: 16, thickness: 0.5),
-                Row(
-                  children: [
-                    const Icon(LucideIcons.circle_question_mark, color: Colors.orangeAccent, size: 12),
-                    const SizedBox(width: 6),
-                    const Expanded(
-                      child: Text(
-                        "Mileage cannot be calculated yet (refueled before reserve). Keep riding until reserve light turns on.",
-                        style: TextStyle(color: Colors.orangeAccent, fontSize: 10),
-                      ),
                     ),
                   ],
                 ),

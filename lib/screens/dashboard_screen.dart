@@ -76,7 +76,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       totalEntries += filteredEntries.length;
 
       for (var entry in filteredEntries) {
-        if (entry.reserveOdometer != null) {
+        if (entry.mileage != null) {
           totalDistance += entry.distance ?? 0.0;
         }
         totalFuel += entry.litres;
@@ -441,26 +441,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Text(
                             "₹${provider.avgFuelCost.toStringAsFixed(2)} / L",
                             style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                      const Divider(color: NeonColors.border, height: 24, thickness: 0.5),
-                      
-                      // Note Row
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(LucideIcons.info, color: Colors.orangeAccent, size: 14),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              "Estimated using average fuel price. If your actual fuel price is different, change it in Settings.",
-                              style: const TextStyle(
-                                color: NeonColors.textSecondary,
-                                fontSize: 10,
-                                height: 1.4,
-                              ),
-                            ),
                           ),
                         ],
                       ),

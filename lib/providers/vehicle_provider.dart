@@ -12,7 +12,7 @@ class VehicleProvider with ChangeNotifier {
   final Map<int, List<FuelEntry>> _fuelEntries = {};
   bool _isDarkMode = true; // Default to dark theme
   String _ownerName = "My";
-  double _avgFuelCost = 100.0; // Default to 100.0
+  double _avgFuelCost = 111.0; // Default to 111.0
 
   List<Vehicle> get vehicles => _vehicles;
   bool get isDarkMode => _isDarkMode;
@@ -39,9 +39,9 @@ class VehicleProvider with ChangeNotifier {
 
     final savedCost = await DBHelper.instance.getSetting('avg_fuel_cost');
     if (savedCost != null) {
-      _avgFuelCost = double.tryParse(savedCost) ?? 100.0;
+      _avgFuelCost = double.tryParse(savedCost) ?? 111.0;
     } else {
-      _avgFuelCost = 100.0;
+      _avgFuelCost = 111.0;
     }
 
     notifyListeners();
@@ -72,7 +72,7 @@ class VehicleProvider with ChangeNotifier {
 
   // Update Average Fuel Cost
   Future<void> updateAvgFuelCost(double cost) async {
-    _avgFuelCost = cost <= 0 ? 100.0 : cost;
+    _avgFuelCost = cost <= 0 ? 111.0 : cost;
     await DBHelper.instance.saveSetting('avg_fuel_cost', _avgFuelCost.toString());
     notifyListeners();
   }
@@ -227,12 +227,12 @@ class VehicleProvider with ChangeNotifier {
       }
     }
 
-    if (lastReserveIdx <= 0) return 0.0; // Need at least one completed cycle
+    if (lastReserveIdx == -1) return 0.0; // Need at least one completed cycle
 
     double totalDistance = 0.0;
-    for (int i = 0; i <= lastReserveIdx; i++) {
-      if (sorted[i].reserveOdometer != null) {
-        totalDistance += sorted[i].distance ?? 0.0;
+    for (var entry in sorted) {
+      if (entry.mileage != null) {
+        totalDistance += entry.distance ?? 0.0;
       }
     }
 
@@ -269,9 +269,9 @@ class VehicleProvider with ChangeNotifier {
     }
 
     double totalDistance = 0.0;
-    for (int i = 0; i <= lastReserveIdx; i++) {
-      if (sorted[i].reserveOdometer != null) {
-        totalDistance += sorted[i].distance ?? 0.0;
+    for (var entry in sorted) {
+      if (entry.mileage != null) {
+        totalDistance += entry.distance ?? 0.0;
       }
     }
     return totalDistance;
@@ -292,7 +292,7 @@ class VehicleProvider with ChangeNotifier {
       }
     }
 
-    if (lastReserveIdx <= 0) {
+    if (lastReserveIdx == -1) {
       // Fallback: sum all fuel if no cycle completed
       double total = 0.0;
       for (var entry in sorted) {
@@ -436,80 +436,83 @@ List<FuelEntry> recalculateFuelEntriesList(List<FuelEntry> rawEntries, Vehicle v
     return a.odometer.compareTo(b.odometer);
   });
 
+  // Step 1: Initialize all entries with segment distance, null mileage, and 0.0 reserveOffset
   for (int i = 0; i < sortedEntries.length; i++) {
     final current = sortedEntries[i];
+    final double prevRefillOdo = i == 0 ? vehicle.initialOdometer : sortedEntries[i - 1].odometer;
+    final double dist = current.odometer - prevRefillOdo;
 
+    sortedEntries[i] = current.copyWith(
+      reserveOffset: 0.0,
+      distance: dist,
+      mileage: null,
+    );
+  }
+
+  // Step 2: Recalculate fuel cycles chronologically when reserve is reached
+  for (int i = 0; i < sortedEntries.length; i++) {
+    final current = sortedEntries[i];
     if (current.reserveOdometer == null) {
-      // Refueled BEFORE reserve was reached
-      final double prevRefillOdo = i == 0 ? vehicle.initialOdometer : sortedEntries[i - 1].odometer;
-      final double dist = current.odometer - prevRefillOdo;
+      continue;
+    }
 
-      sortedEntries[i] = current.copyWith(
-        reserveOffset: 0.0,
-        distance: dist,
-        mileage: null, // Mileage cannot be calculated yet
-      );
+    // Refueled AFTER reserve was reached (Reserve Offset Mode)
+    // Find the index of the most recent previous entry where reserve was reached
+    int startIndex = -1;
+    for (int k = i - 1; k >= 0; k--) {
+      if (sortedEntries[k].reserveOdometer != null) {
+        startIndex = k;
+        break;
+      }
+    }
+
+    double startRefillOdo;
+    double startOffset;
+    int sumStartIdx;
+
+    if (startIndex != -1) {
+      startRefillOdo = sortedEntries[startIndex].odometer;
+      startOffset = sortedEntries[startIndex].reserveOffset ?? 0.0;
+      sumStartIdx = startIndex;
     } else {
-      // Refueled AFTER reserve was reached (Reserve Offset Mode)
-      // Find the index of the most recent previous entry where reserve was reached
-      int startIndex = -1;
-      for (int k = i - 1; k >= 0; k--) {
-        if (sortedEntries[k].reserveOdometer != null) {
-          startIndex = k;
-          break;
-        }
-      }
-
-      double startRefillOdo;
-      double startOffset;
-      int sumStartIdx;
-
-      if (startIndex != -1) {
-        startRefillOdo = sortedEntries[startIndex].odometer;
-        startOffset = sortedEntries[startIndex].reserveOffset ?? 0.0;
-        sumStartIdx = startIndex;
+      // No previous reserve entry exists
+      if (i > 0) {
+        startRefillOdo = sortedEntries[0].odometer;
+        startOffset = 0.0;
+        sumStartIdx = 0;
       } else {
-        // No previous reserve entry exists
-        if (i > 0) {
-          startRefillOdo = sortedEntries[0].odometer;
-          startOffset = 0.0;
-          sumStartIdx = 0;
-        } else {
-          // This is the first entry and it is a reserve entry
-          startRefillOdo = vehicle.initialOdometer;
-          startOffset = 0.0;
-          sumStartIdx = 0;
-        }
+        // This is the first entry and it is a reserve entry
+        startRefillOdo = vehicle.initialOdometer;
+        startOffset = 0.0;
+        sumStartIdx = 0;
+      }
+    }
+
+    final double reserveOdo = current.reserveOdometer!;
+    final double offset = current.odometer - reserveOdo;
+    
+    // Keep the reserve offset on the current entry
+    sortedEntries[i] = sortedEntries[i].copyWith(
+      reserveOffset: offset,
+    );
+
+    if (i > 0) {
+      final double displayedDist = reserveOdo - startRefillOdo;
+      final double actualDist = displayedDist + startOffset;
+
+      // Sum litres of all entries from sumStartIdx to i-1
+      double totalLitres = 0.0;
+      for (int p = sumStartIdx; p < i; p++) {
+        totalLitres += sortedEntries[p].litres;
       }
 
-      final double reserveOdo = current.reserveOdometer!;
-      final double offset = current.odometer - reserveOdo;
-      
-      double actualDist;
       double? mileage;
-
-      if (i == 0) {
-        // First entry, no mileage calculation possible yet
-        actualDist = 0.0;
-        mileage = null;
-      } else {
-        final double displayedDist = reserveOdo - startRefillOdo;
-        actualDist = displayedDist + startOffset;
-
-        // Sum litres of all entries from sumStartIdx to i-1
-        double totalLitres = 0.0;
-        for (int p = sumStartIdx; p < i; p++) {
-          totalLitres += sortedEntries[p].litres;
-        }
-
-        if (totalLitres > 0) {
-          mileage = actualDist / totalLitres;
-        }
+      if (totalLitres > 0) {
+        mileage = actualDist / totalLitres;
       }
 
-      sortedEntries[i] = current.copyWith(
-        reserveOdometer: reserveOdo,
-        reserveOffset: offset,
+      // Assign the mileage and actual cycle distance to sumStartIdx (where fuel was filled)
+      sortedEntries[sumStartIdx] = sortedEntries[sumStartIdx].copyWith(
         distance: actualDist,
         mileage: mileage,
       );
